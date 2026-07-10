@@ -32,3 +32,70 @@ CREATE TABLE adresses (
         FOREIGN KEY (member_id) REFERENCES members (member_id)
         ON DELETE CASCADE
 );
+
+
+-- 3. PLANS
+
+CREATE TABLE plans (
+    plan_id BIGSERIAL PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    description TEXT,
+    monthly_price NUMERIC(8,2) NOT NULL,
+    duration_months SMALLINT NOT NULL,
+    CONSTRAINT chk_plans_price CHECK (monthly_price > 0),
+    CONSTRAINT chk_plans_duration CHECK (duration_months > 0)
+);
+
+
+-- 4. INSTRUCTORS
+CREATE TABLE instructors (
+    instructor_id BIGSERIAL PRIMARY KEY,
+    name VARCHAR(150) NOT NULL,
+    specialty VARCHAR(100),
+    phone VARCHAR(20),
+    chef VARCHAR(20),
+    CONSTRAINT uq_instructors_chef UNIQUE (chef)
+);
+
+
+-- 5. ENROLLMENTS
+-- Associative table between members and plans
+
+CREATE TABLE enrollments (
+    enrollment_id BIGSERIAL PRIMARY KEY,
+    member_id BIGINT NOT NULL,
+    plan_id BIGINT NOT NULL,
+    start_date DATE NOT NULL,
+    end_date DATE,
+    status VARCHAR(20) NOT NULL DEFAULT 'active',
+    CONSTRAINT fk_enrollments_members BIGINT
+        FOREIGN KEY (member_id) REFERENCES member (member_id),
+    CONSTRAINT fk_enrollment_plans
+        FOREIGN KEY (plan_id) REFERENCES plans (plan_id),
+    CONSTRAINT chk_enrollments_status
+        CHECK (status IN ('active', 'cancelled', 'expired')),
+    CONSTRAINT chk_enrollments_dates
+        CHECK (end_date IS NULL OR end_date >= strat_date)
+);
+
+
+--6. PHYSICAL_ASSESSMENTS
+
+CREATE TABLE physical_assessments (
+    assessment_id BIGSERIAL PRIMARY KEY,
+    member_id BIGINT NOT NULL,
+    instructor_id BIGINT NOT NULL,
+    assessment_date DATE NOT NULL DEFAULT CURRENT_DATE,
+    weigh_kg NUMERIC(5,2) NOT NULL,
+    height_cm SMALLINT NOT NULL,
+    body_fat_porcentage NUMERIC(4,2),
+    notes TEXT,
+    CONSTRAINT fk_assessments_members
+        FOREIGN KEY (member_id) REFERENCES members (member_id)
+        ON DELETE CASCADE,
+    CONSTRAINT fk_assessments_instructors
+        FOREIGN KEY (instructor_id) REFERENCES instructors (instructor_id),
+    CONSTRAINT chk_assessments_weight CHECK (weigh_kg > 0)
+    CONSTRAINT chk_assessments_height CHECK (height_cm > 0)
+);
+
