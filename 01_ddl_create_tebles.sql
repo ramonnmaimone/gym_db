@@ -5,7 +5,7 @@
 
 CREATE TABLE members (
     member_id BIGSERIAL PRIMARY KEY,
-    member_name VARCHAR(150) NOT NULL,
+    name VARCHAR(150) NOT NULL,
     cpf VARCHAR(14) NOT NULL,
     email VARCHAR(255) NOT NULL,
     phone VARCHAR(20) NOT NULL,
@@ -19,7 +19,7 @@ CREATE TABLE members (
 
 --2. ADDRESSES
 
-CREATE TABLE adresses (
+CREATE TABLE addresses (
     member_id BIGINT PRIMARY KEY,
     street VARCHAR(200) NOT NULL,
     number VARCHAR(20),
@@ -28,7 +28,7 @@ CREATE TABLE adresses (
     city VARCHAR(100) NOT NULL,
     state VARCHAR(2) NOT NULL,
     zip_code VARCHAR(10) NOT NULL,
-    CONSTRAINT fk_adresses_members
+    CONSTRAINT fk_addresses_members
         FOREIGN KEY (member_id) REFERENCES members (member_id)
         ON DELETE CASCADE
 );
@@ -68,7 +68,7 @@ CREATE TABLE enrollments (
     start_date DATE NOT NULL,
     end_date DATE,
     status VARCHAR(20) NOT NULL DEFAULT 'active',
-    CONSTRAINT fk_enrollments_members BIGINT
+    CONSTRAINT fk_enrollments_members
         FOREIGN KEY (member_id) REFERENCES member (member_id),
     CONSTRAINT fk_enrollment_plans
         FOREIGN KEY (plan_id) REFERENCES plans (plan_id),
@@ -95,7 +95,18 @@ CREATE TABLE physical_assessments (
         ON DELETE CASCADE,
     CONSTRAINT fk_assessments_instructors
         FOREIGN KEY (instructor_id) REFERENCES instructors (instructor_id),
-    CONSTRAINT chk_assessments_weight CHECK (weigh_kg > 0)
+    CONSTRAINT chk_assessments_weight CHECK (weigh_kg > 0),
     CONSTRAINT chk_assessments_height CHECK (height_cm > 0)
 );
+
+
+-- Active plan
+CREATE INDEX idx_enrollments_member_id ON enrollments (member_id);
+
+-- Report "How much member for each plan"
+CREATE INDEX idx_enrollments_plan_id ON enrollments (plan_id);
+
+-- Enrollments filter 
+CREATE INDEX idx_enrollments_status ON enrollments (status)
+WHERE status = "active";
 
